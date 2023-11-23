@@ -1,14 +1,18 @@
+##importa bibliotecas e funções úteis para o programa
 import streamlit as st
 import pandas as pd
 import altair as alt
+import numpy as np
 from Authenticate import check_password
 
+##muda o título da página na aba do navegador
 st.set_page_config(
-    page_title="Dashboard",
+    page_title="Dashboard - Einstein PMRM",
     page_icon="📊",
     layout="wide",
     )
 
+##esconde a barra de acesso lateral durante o login do usuário
 hide_bar= """
     <style>
     [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
@@ -21,73 +25,91 @@ hide_bar= """
     </style>
 """
 
-check_password() 
-
-df = pd.read_csv("https://raw.githubusercontent.com/AndersonEduardo/pbl-2023/main/sample_data_clean.csv")
-
-def load_data(url):
-    data = pd.read_csv(url, parse_dates=['dh_admissao_paciente', 'dh_alta_paciente'])
-    return data
-
-# Função para criar gráfico interativo
-def create_interactive_chart(data, x_column, y_column, chart_type, invert_axes):
-    chart = None
-    if chart_type == 'Barras':
-        chart = alt.Chart(data).mark_bar().encode(
-            x=alt.X(x_column, title=x_column, sort='-y' if x_column == 'ds_micro_organismo' else None),
-            y=alt.Y(y_column, title=y_column)
-        ).interactive()
-    elif chart_type == 'Linhas':
-        chart = alt.Chart(data).mark_line().encode(
-            x=alt.X(x_column, title=x_column, sort='-y' if x_column == 'ds_micro_organismo' else None),
-            y=alt.Y(y_column, title=y_column)
-        ).interactive()
-
-    if invert_axes:
-        chart = chart.properties(width='container', height='container').encode(
-            x=alt.X(y_column, title=y_column, sort='-x' if y_column == 'ds_micro_organismo' else None),
-            y=alt.Y(x_column, title=x_column)
-        )
-
-    return chart
-
-# Função para criar DataFrame com dados do gráfico e número total de casos
-def create_summary_dataframe(data, x_column, y_column):
-    summary_data = data[[x_column, y_column]].groupby(x_column).agg({y_column: 'mean'}).reset_index()
-    total_cases = data.shape[0]
-    return summary_data, total_cases
-
-# Título da aplicação
-st.title("Visualização Gráfica dos Dados:")
-
-# URL do arquivo CSV
-url = "https://raw.githubusercontent.com/AndersonEduardo/pbl-2023/main/sample_data_clean.csv"
-data = load_data(url)
-
-# Criar nova variável dh_media
-data['dh_media'] = (data['dh_alta_paciente'] - data['dh_admissao_paciente']).dt.days
-
-# Formatar colunas de data no formato solicitado
-data['dh_admissao_paciente'] = data['dh_admissao_paciente'].dt.strftime('%Y-%m-%d')
-data['dh_alta_paciente'] = data['dh_alta_paciente'].dt.strftime('%Y-%m-%d')
-
-# Seleção de colunas
-x_column = st.selectbox("Selecione a coluna para o eixo X", ['ds_micro_organismo'] + list(data.columns[2:]))
-y_column = st.selectbox("Selecione a coluna para o eixo Y", ['dh_media'] + list(data.columns[2:]))
-
-# Seleção do tipo de gráfico
-chart_type = st.radio("Selecione o tipo de gráfico", ['Barras', 'Linhas'])
-
-# Botão para inverter os eixos
-invert_axes = st.checkbox("Inverter Eixos")
-
-# Criar gráfico interativo
-st.subheader("Gráfico (Média de tempo de internação x Microorganismo")
-chart = create_interactive_chart(data, x_column, y_column, chart_type, invert_axes)
-st.altair_chart(chart, use_container_width=True)
-
-# Montar DataFrame com dados do gráfico e número total de casos
-st.subheader("Resumo dos Dados")
-summary_data, total_cases = create_summary_dataframe(data, x_column, y_column)
-st.write("Número Total de Casos:", total_cases)
-st.write(summary_data)
+if check_password() == True:
+    # Carregar os dados do CSV
+    url = "https://raw.githubusercontent.com/AndersonEduardo/pbl-2023/main/sample_data_clean.csv"
+    df = pd.read_csv(url)
+    
+    # Converter as colunas de data para o formato apropriado
+    df['dh_admissao_paciente'] = pd.to_datetime(df['dh_admissao_paciente'])
+    df['dh_alta_paciente'] = pd.to_datetime(df['dh_alta_paciente'])
+    
+    # Adicionar filtros interativos
+    filtro_periodo = st.date_input('Selecione o período:', [df['dh_admissao_paciente'].min().date(), df['dh_alta_paciente'].max().date()])
+    # Converter para numpy.datetime64
+    filtro_periodo = [np.datetime64(date) for date in filtro_periodo]
+    
+    microorganismos_selecionados = st.multiselect('Selecione os microorganismos:', df['cd_sigla_microorganismo'].unique())
+    
+    # Adicionar botão para análise de todo o período para o microorganismo selecionado
+    analise_periodo_completo = st.button('Analisar Todo o Período para o Microorganismo Selecionado')
+    
+    # Aplicar os filtros
+    df_filtrado = df[(df['dh_admissao_paciente'] >= filtro_periodo[0]) & (df['dh_alta_paciente'] <= filtro_periodo[1])]
+    if microorganismos_selecionados:
+        df_filtrado = df_filtrado[df_filtrado['cd_sigla_microorganismo'].isin(microorganismos_selecionados)]
+    
+    # Calcular o tempo de internação em dias
+    df_filtrado['tempo_internacao_dias'] = (df_filtrado['dh_alta_paciente'] - df_filtrado['dh_admissao_paciente']).dt.days
+    
+    # Agrupar por microorganismo, calculando a média e o total de admissões para cada grupo
+    resumo_microorganismo = df_filtrado.groupby('cd_sigla_microorganismo').agg(
+        media_tempo_internacao=pd.NamedAgg(column='tempo_internacao_dias', aggfunc='mean'),
+        total_admissoes=pd.NamedAgg(column='tempo_internacao_dias', aggfunc='count')
+    ).reset_index()
+    
+    # Criar o aplicativo Streamlit
+    st.write('Tempo de Internação por Microorganismo')
+    
+    # Verificar se há dados para o período selecionado
+    if not df_filtrado.empty:
+        # Verificar se o botão foi clicado
+        if analise_periodo_completo:
+            df_analise_completa = df[df['cd_sigla_microorganismo'].isin(microorganismos_selecionados)]
+    
+            # Calcular o tempo de internação em dias para o período completo
+            df_analise_completa['tempo_internacao_dias'] = (df_analise_completa['dh_alta_paciente'] - df_analise_completa['dh_admissao_paciente']).dt.days
+    
+            # Agrupar por microorganismo, calculando a média e o total de admissões para cada grupo
+            resumo_microorganismo_completo = df_analise_completa.groupby('cd_sigla_microorganismo').agg(
+                media_tempo_internacao=pd.NamedAgg(column='tempo_internacao_dias', aggfunc='mean'),
+                total_admissoes=pd.NamedAgg(column='tempo_internacao_dias', aggfunc='count')
+            ).reset_index()
+    
+            # Exibir resumo no DataFrame abaixo do gráfico
+            st.dataframe(resumo_microorganismo_completo, use_container_width=True)
+    
+            # Criar gráfico para o período completo usando Altair
+            chart_completo = alt.Chart(df_analise_completa).mark_line().encode(
+                x='dh_admissao_paciente:T',
+                y='tempo_internacao_dias:Q',
+                color='cd_sigla_microorganismo:N'
+            ).properties(
+                width=800,
+                height=400
+            )
+    
+            st.altair_chart(chart_completo, use_container_width=True)
+        else:
+            # Criar gráfico para o período selecionado usando Altair
+            chart = alt.Chart(df_filtrado).mark_line().encode(
+                x='dh_admissao_paciente:T',
+                y='tempo_internacao_dias:Q',
+                color='cd_sigla_microorganismo:N'
+            ).properties(
+                width=800,
+                height=400
+            )
+    
+            st.altair_chart(chart, use_container_width=True)
+    
+            # Exibir resumo no DataFrame abaixo do gráfico
+            st.dataframe(resumo_microorganismo, use_container_width=True)
+    
+            # Adicionar informações sobre os filtros selecionados
+            st.write(f"Filtrado por período de {filtro_periodo[0]} a {filtro_periodo[1]}")
+            st.write(f"Microorganismos selecionados: {', '.join(microorganismos_selecionados) if microorganismos_selecionados else 'Todos'}")
+    else:
+        st.write("Nenhum dado disponível para o período selecionado e os microorganismos escolhidos.")
+else:
+    st.stop()
