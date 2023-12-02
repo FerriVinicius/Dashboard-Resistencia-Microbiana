@@ -24,6 +24,7 @@ hide_bar= """
     </style>
 """
 if check_password():
+    col1 = st.columns(1)
     def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         modify = st.checkbox("Adicionar Filtros")
         
@@ -35,7 +36,7 @@ if check_password():
         modification_container = st.container()
     
         with modification_container:
-            to_filter_columns = st.multiselect("Filtrar tabela por:", list(column_mapping.values()))
+            to_filter_columns = col1.multiselect("Filtrar tabela por:", list(column_mapping.values()))
             to_filter_columns = [key for key, value in column_mapping.items() if value in to_filter_columns]
             
             for column_key in to_filter_columns:
@@ -84,14 +85,14 @@ if check_password():
                         df = df[df[column].str.contains(user_text_input)]
     
             # Adiciona o botão de exportação
-            export_button = st.button("Preparar dados para exportação")
+            export_button = col1.button("Preparar dados para exportação")
     
             # Se o botão for pressionado, exporta o DataFrame
             if export_button:
                 export_data = BytesIO()
                 df.to_csv(export_data, index=False)
                 export_data.seek(0)
-                st.download_button(
+                col1.download_button(
                     label="Download",
                     data=export_data,
                     file_name="dados_filtrados.csv",
@@ -130,6 +131,6 @@ if check_password():
 
     # Mostra o DataFrame filtrado e adiciona a funcionalidade de exportação
     filtered_df = filter_dataframe(filtered_df)
-    st.dataframe(filtered_df)
+    col1.dataframe(filtered_df)
 else:
     st.stop()
