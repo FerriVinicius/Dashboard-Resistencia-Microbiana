@@ -8,8 +8,9 @@ from Authenticate import check_password
 st.set_page_config(
     page_title="Relatórios - Einstein PMRM",
     page_icon="📋",
+    layout='wide',
     )
-st.header("Programa de Monitoramento de Resistência Microbiana")
+st.header("Programa de Monitoramento de Resistência Microbiana", divider='green')
 
 ##esconde a barra de acesso lateral durante o login do usuário
 hide_bar= """
@@ -23,7 +24,34 @@ hide_bar= """
     }
     </style>
 """
+
 if check_password():
+    page_bg_img = f"""
+    <style>
+    [data-testid="stAppViewContainer"] > .main {{
+    background-image: url("https://www.willametteinnovators.com/wp-content/uploads/2019/07/Capture2-600x425@2x.png");
+    background-size: 150%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: local;
+    }}
+    [data-testid="stSidebar"] > div:first-child {{
+    background-image: url("https://minhabiblioteca.com.br/wp-content/uploads/2021/04/logo-einstein.png");
+    background-position: center; 
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    }}
+    
+    [data-testid="stHeader"] {{
+    background: rgba(0,0,0,0);
+    }}
+    
+    [data-testid="stToolbar"] {{
+    right: 2rem;
+    }}
+    """
+    
+    st.markdown(page_bg_img, unsafe_allow_html=True)
     def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         modify = st.checkbox("Adicionar Filtros")
         
