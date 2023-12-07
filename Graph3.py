@@ -16,7 +16,7 @@ def graph3():
     df['dh_recebimento_exame'] = pd.to_datetime(df['dh_recebimento_exame'])
 
     # Botões para seleção de período
-    periodo_opcao = col1.radio("Selecione o período (Graph3):", ["30 dias", "90 dias", "6 meses", "1 ano", "Período completo"])
+    periodo_opcao = col1.radio("3- Selecione o período:", ["30 dias", "90 dias", "6 meses", "1 ano", "Período completo"])
 
     # Calcular o período correspondente
     if periodo_opcao == "30 dias":
@@ -36,7 +36,7 @@ def graph3():
         data_maxima = df['dh_recebimento_exame'].max().date()
 
     # Adicionar filtro de período
-    filtro_periodo = col1.date_input('Selecione o período (Graph3):', [data_inicial, data_maxima])
+    filtro_periodo = col1.date_input('3- Selecione o período:', [data_inicial, data_maxima])
 
     # Converter para numpy.datetime64
     filtro_periodo = [np.datetime64(date) for date in filtro_periodo]
