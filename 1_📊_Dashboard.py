@@ -4,6 +4,7 @@ from Authenticate import check_password
 from Graph1 import graph1
 from Graph2 import graph2
 from Graph3 import graph3
+from Graph4 import graph4
 
 ##muda o título da página na aba do navegador
 st.set_page_config(
@@ -31,10 +32,10 @@ if check_password() == True:
     page_bg_img = f"""
     <style>
     [data-testid="stAppViewContainer"] > .main {{
-    background-image: url("https://www.willametteinnovators.com/wp-content/uploads/2019/07/Capture2-600x425@2x.png");
-    background-size: 150%;
+    background-image: url("https://raw.githubusercontent.com/FerriVinicius/Dashboard-Resistencia-Microbiana/main/151537457_l_normal_none.jpg");
+    background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-repeat: repeat;
     background-attachment: local;
     }}
     [data-testid="stSidebar"] > div:first-child {{
@@ -55,12 +56,14 @@ if check_password() == True:
     
     st.markdown(page_bg_img, unsafe_allow_html=True)
     st.session_state.sbstate = 'expanded'
-    tab1, tab2, tab3 = st.tabs(["Internações", "Microorganismos", "Alas"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Sensibilidade por Antibióticos", "Sensibilidade por Microorganismos", "Infecções por Ala Hospitalar", "Internações por Microorganismo"])
     with tab1:
-        graph1()
-    with tab2:
         graph2()
+    with tab2:
+        graph4()
     with tab3:
         graph3()
+    with tab4:
+        graph1()
 else:
     st.stop()
