@@ -22,7 +22,7 @@ def check_password():
     page_bg_img = f"""
     <style>
     [data-testid="stAppViewContainer"] > .main {{
-    background-image: url("https://futurodasaude.com.br/wp-content/uploads/2023/08/Formacao-de-medicos-Einstein.jpeg");
+    background-image: url("https://raw.githubusercontent.com/FerriVinicius/Dashboard-Resistencia-Microbiana/main/194065878_l_normal_none.jpg");
     background-size: 150%;
     background-position: center;
     background-repeat: no-repeat;
@@ -38,6 +38,14 @@ def check_password():
     }}
     """
     
+    stform = f"""
+    <style>
+    [data-testid="stForm"] {{
+    background-color: lightsteelblue;
+    </style>
+    }}
+    """
+        
     st.markdown(page_bg_img, unsafe_allow_html=True)
     
     ##aspectos visuais da sidebar
@@ -58,6 +66,7 @@ def check_password():
             st.text_input("Senha", type="password", key="password")
             st.form_submit_button("Entrar", on_click=password_entered)
             st.markdown(hide_bar, unsafe_allow_html=True)
+            st.markdown(stform, unsafe_allow_html=True)
     
     #funÃ§Ã£o para checar as credenciais inseridas no sistema, retorna True caso esteja correta
     def password_entered():
