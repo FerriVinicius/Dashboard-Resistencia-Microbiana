@@ -38,14 +38,13 @@ def check_password():
     }}
     """
     
-    stform = """
+    stform = f"""
     <style>
-    [data-testid="stForm"] {
-        background-color: lightsteelblue;
-    }
+    [data-testid="stForm"] {{
+    background-color: lightsteelblue;
     </style>
+    }}
     """
-
         
     st.markdown(page_bg_img, unsafe_allow_html=True)
     
