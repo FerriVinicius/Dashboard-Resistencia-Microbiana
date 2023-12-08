@@ -38,13 +38,14 @@ def check_password():
     }}
     """
     
-    stform = f"""
+    stform = """
     <style>
-    [data-testid="stForm"] {{
-    background-color: lightsteelblue;
+    [data-testid="stForm"] {
+        background-color: lightsteelblue;
+    }
     </style>
-    }}
     """
+
         
     st.markdown(page_bg_img, unsafe_allow_html=True)
     
@@ -95,7 +96,7 @@ def check_password():
     ##completmento da funÃ§Ã£o check_password(), retorna mensagem de erro ao inserir credenciais invÃ¡lidas.
     login_form()
     if st.session_state.show_error_message:
-        st.error("UsuÃ¡rio ou senha invÃ¡lidas, tente novamente.")
+        st.error("Usuário ou senha inválidas, tente novamente.")
         st.markdown(hide_bar, unsafe_allow_html=True)
     
     # Verifica se as credenciais sÃ£o corretas antes de continuar
