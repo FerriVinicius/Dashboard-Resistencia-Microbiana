@@ -1,32 +1,48 @@
-##importa bibliotecas Ãºteis para a funcionalidade
-import hmac
+##importa bibliotecas e funções úteis para o programa
 import streamlit as st
+from Authenticate import check_password
+from Graph1 import graph1
+from Graph2 import graph2
+from Graph3 import graph3
+from Graph4 import graph4
 
-##funÃ§Ã£o de autenticaÃ§Ã£o por meio de um nome de usuÃ¡rio e uma senha
-def check_password():
-    ##retorna True se o usuÃ¡rio fornecer uma senha correta
-    
-    ##esconde a barra lateral de navegaÃ§Ã£o enquanto o usuÃ¡rio nÃ£o estiver autenticado
-    hide_bar= """
-        <style>
-        [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-            visibility:hidden;
-            width: 0px;
-        }
-        [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
-            visibility:hidden;
-        }
-        </style>
-    """
+##muda o título da página na aba do navegador
+st.set_page_config(
+    page_title="Dashboard - Einstein PMRM",
+    page_icon="📊",
+    layout="wide",
+    )
+st.header("Programa de Monitoramento de Resistência Microbiana", divider='green')
+
+##esconde a barra de acesso lateral durante o login do usuário
+hide_bar= """
+    <style>
+    [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+        visibility:hidden;
+        width: 0px;
+    }
+    [data-testid="stSidebar"][aria-expanded="false"] > div:first-child {
+        visibility:hidden;
+    }
+    </style>
+"""
+
+if check_password() == True:
     
     page_bg_img = f"""
     <style>
     [data-testid="stAppViewContainer"] > .main {{
-    background-image: url("https://raw.githubusercontent.com/FerriVinicius/Dashboard-Resistencia-Microbiana/main/194065878_l_normal_none.jpg");
-    background-size: 150%;
+    background-image: url("https://raw.githubusercontent.com/FerriVinicius/Dashboard-Resistencia-Microbiana/main/151537457_l_normal_none.jpg");
+    background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-repeat: repeat;
     background-attachment: local;
+    }}
+    [data-testid="stSidebar"] > div:first-child {{
+    background-image: url("https://minhabiblioteca.com.br/wp-content/uploads/2021/04/logo-einstein.png");
+    background-position: center; 
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     }}
     
     [data-testid="stHeader"] {{
@@ -38,69 +54,16 @@ def check_password():
     }}
     """
     
-    stform = """
-    <style>
-    [data-testid="stForm"] {
-        background-color: lightsteelblue;
-    }
-    </style>
-    """
-
-        
     st.markdown(page_bg_img, unsafe_allow_html=True)
-    
-    ##aspectos visuais da sidebar
-    st.sidebar.header("Bem vindo!")
-    icon = "https://minhabiblioteca.com.br/wp-content/uploads/2021/04/logo-einstein.png"
-    st.sidebar.image(icon, use_column_width=True)
-    
-    ##inicializa a sessÃ£o caso ela nÃ£o exista
-    if "show_error_message" not in st.session_state:
-        st.session_state.show_error_message = False
-    if "password_correct" not in st.session_state:
-        st.session_state.password_correct = None
-
-    ##funÃ§Ã£o para formulÃ¡rio de login
-    def login_form():
-        with st.form("Credentials"):
-            st.text_input("Usuário", key="username")
-            st.text_input("Senha", type="password", key="password")
-            st.form_submit_button("Entrar", on_click=password_entered)
-            st.markdown(hide_bar, unsafe_allow_html=True)
-            st.markdown(stform, unsafe_allow_html=True)
-    
-    #funÃ§Ã£o para checar as credenciais inseridas no sistema, retorna True caso esteja correta
-    def password_entered():
-        if st.session_state["username"] in st.secrets["passwords"] and hmac.compare_digest(
-                st.session_state["password"],
-                st.secrets.passwords[st.session_state["username"]],
-        ):
-            st.session_state.password_correct = True
-            del st.session_state["password"]  ##funcionalidade para nÃ£o salvar as credenciais utilizadas
-            del st.session_state["username"]
-        else:
-            st.session_state.password_correct = False
-            st.session_state.show_error_message = True
-            st.markdown(hide_bar, unsafe_allow_html=True)
-
-    ##funÃ§Ã£o para sair do sistema e retornar para a pÃ¡gina de login
-    def logout():
-        st.session_state.password_correct = None
-        st.session_state.show_error_message = False
-       
-    ##complemento da funÃ§Ã£o check_password(), com inserÃ§Ã£o de botÃ£o para encerramento de sessÃ£o
-    if st.session_state.password_correct is True:
-        st.sidebar.button("❌ Encerrar Sessão", on_click=logout)
-        return True
-
-    ##completmento da funÃ§Ã£o check_password(), retorna mensagem de erro ao inserir credenciais invÃ¡lidas.
-    login_form()
-    if st.session_state.show_error_message:
-        st.error("UsuÃ¡rio ou senha invÃ¡lidas, tente novamente.")
-        st.markdown(hide_bar, unsafe_allow_html=True)
-    
-    # Verifica se as credenciais sÃ£o corretas antes de continuar
-    if st.session_state.password_correct is True:
-        return True
-    else:
-        return False
+    st.session_state.sbstate = 'expanded'
+    tab1, tab2, tab3, tab4 = st.tabs(["Sensibilidade por Antibióticos", "Sensibilidade por Microorganismos", "Infecções por Ala Hospitalar", "Internações por Microorganismo"])
+    with tab1:
+        graph2()
+    with tab2:
+        graph4()
+    with tab3:
+        graph3()
+    with tab4:
+        graph1()
+else:
+    st.stop()
